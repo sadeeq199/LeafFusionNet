@@ -38,10 +38,19 @@ class ModelInfoResponse(RootModel[dict[str, Any]]):
 
 
 class PredictionItem(APIModel):
-    """A ranked class prediction."""
+    model_config = ConfigDict(
+        extra="forbid",
+        populate_by_name=True
+    )
 
-    class_name: str = Field(serialization_alias="class", validation_alias="class")
-    confidence: float = Field(ge=0.0, le=100.0)
+    class_name: str = Field(
+        serialization_alias="class"
+    )
+
+    confidence: float = Field(
+        ge=0.0,
+        le=100.0
+    )
 
 
 class PredictionResponse(APIModel):
