@@ -11,6 +11,7 @@ import tensorflow as tf
 from PIL import Image, UnidentifiedImageError
 
 from .config import IMAGE_SIZE, SUPPORTED_IMAGE_FORMATS
+from .gemini_validator import validate_leaf_image
 from .model_loader import get_class_names, get_model
 from .schemas import PredictionItem, PredictionResponse
 
@@ -73,6 +74,10 @@ def predict_image(data: bytes) -> PredictionResponse:
         Structured prediction response with percentage confidences.
     """
     _validate_image(data)
+    is_valid_leaf, validation_reason = validate_leaf_image(data)
+    if not is_valid_leaf:
+        raise InvalidImageError(validation_reason)
+
     model_input = _preprocess_image(data)
     class_names = get_class_names()
 
