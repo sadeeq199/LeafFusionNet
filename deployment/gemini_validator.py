@@ -22,7 +22,11 @@ if not _API_KEY:
     )
 
 _CLIENT = genai.Client(api_key=_API_KEY)
-_MODEL_NAME = "gemini-2.5-flash"
+_MODEL_NAMES = (
+    "gemini-2.5-flash-lite",
+    "gemini-2.5-flash",
+    "gemini-2.5-pro",
+)
 _DEFAULT_MIME_TYPE = "image/jpeg"
 _JSON_OBJECT_PATTERN = re.compile(r"\{.*\}", re.DOTALL)
 
@@ -120,6 +124,16 @@ def _parse_validation_response(response_text: str | None) -> tuple[bool, str]:
     return False, "حط صورة ورقه نبات يا خول."
 
 
+def _is_not_found_error(exc: Exception) -> bool:
+    """Return whether a Gemini SDK exception represents a 404 response."""
+    status_code = getattr(exc, "code", None) or getattr(exc, "status_code", None)
+    if status_code == 404:
+        return True
+
+    error_text = str(exc).upper()
+    return "404" in error_text or "NOT_FOUND" in error_text
+
+
 def validate_leaf_image(image_bytes: bytes) -> tuple[bool, str]:
     """Validate whether image bytes contain one diagnosable plant leaf.
 
@@ -143,20 +157,30 @@ def validate_leaf_image(image_bytes: bytes) -> tuple[bool, str]:
         mime_type=_detect_mime_type(image_bytes),
     )
 
-    try:
-        response = _CLIENT.models.generate_content(
-            model=_MODEL_NAME,
-            contents=[_VALIDATION_PROMPT, image_part],
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json"
-            ),
-        )
-    except Exception as exc:
-        raise RuntimeError(
-            "Gemini image validation is temporarily unavailable."
-        ) from exc
+    first_not_found_error: Exception | None = None
 
-    return _parse_validation_response(response.text)
+    for model_name in _MODEL_NAMES:
+        try:
+            response = _CLIENT.models.generate_content(
+                model=model_name,
+                contents=[_VALIDATION_PROMPT, image_part],
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json"
+                ),
+            )
+            return _parse_validation_response(response.text)
+        except Exception as exc:
+            if _is_not_found_error(exc):
+                if first_not_found_error is None:
+                    first_not_found_error = exc
+                continue
+            raise RuntimeError(
+                "Gemini image validation is temporarily unavailable."
+            ) from exc
+
+    raise RuntimeError(
+        "Gemini image validation failed because no configured Gemini model is available."
+    ) from first_not_found_error
 
 
 __all__ = ["validate_leaf_image"]
