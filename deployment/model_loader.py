@@ -9,7 +9,12 @@ from typing import Any
 
 import tensorflow as tf
 
-from .config import CLASS_NAMES_PATH, MODEL_METADATA_PATH, MODEL_PATH
+from .config import (
+    CLASS_NAMES_PATH,
+    MODEL_METADATA_PATH,
+    MODEL_PATH,
+    PROJECT_ROOT,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +38,23 @@ def _read_json(path: Path) -> Any:
     except (OSError, json.JSONDecodeError) as exc:
         raise RuntimeError(f"Unable to load artifact '{path}': {exc}") from exc
 
+from pathlib import Path
+import os
+
+print("=" * 60)
+print("Current working directory:", os.getcwd())
+print("Project root exists:", PROJECT_ROOT)
+print("Models dir exists:", (PROJECT_ROOT / "models").exists())
+
+models_dir = PROJECT_ROOT / "models"
+if models_dir.exists():
+    print("Files inside models:")
+    for f in models_dir.iterdir():
+        print(" -", f.name)
+else:
+    print("Models directory does not exist")
+
+print("=" * 60)
 
 def load_artifacts() -> None:
     """Load the Keras model and its metadata once for the service lifetime.
