@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: leaffusionnet-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./deployment/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: TF_CPP_MIN_LOG_LEVEL
+        value: "2"
+      - key: MAX_UPLOAD_BYTES
+        value: "10485760"

@@ -1,0 +1,99 @@
+Model: "LeafFusionNet"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_image (InputLayer)       [(None, 224, 224, 3  0           []                               
+                                )]                                                                
+                                                                                                  
+ stem_conv (Conv2D)             (None, 112, 112, 32  896         ['input_image[0][0]']            
+                                )                                                                 
+                                                                                                  
+ stem_batch_norm (BatchNormaliz  (None, 112, 112, 32  128        ['stem_conv[0][0]']              
+ ation)                         )                                                                 
+                                                                                                  
+ stem_relu (ReLU)               (None, 112, 112, 32  0           ['stem_batch_norm[0][0]']        
+                                )                                                                 
+                                                                                                  
+ branch_a_conv_1 (Conv2D)       (None, 112, 112, 32  9248        ['stem_relu[0][0]']              
+                                )                                                                 
+                                                                                                  
+ branch_b_conv_1 (Conv2D)       (None, 112, 112, 32  25632       ['stem_relu[0][0]']              
+                                )                                                                 
+                                                                                                  
+ branch_a_batch_norm_1 (BatchNo  (None, 112, 112, 32  128        ['branch_a_conv_1[0][0]']        
+ rmalization)                   )                                                                 
+                                                                                                  
+ branch_b_batch_norm_1 (BatchNo  (None, 112, 112, 32  128        ['branch_b_conv_1[0][0]']        
+ rmalization)                   )                                                                 
+                                                                                                  
+ branch_a_relu_1 (ReLU)         (None, 112, 112, 32  0           ['branch_a_batch_norm_1[0][0]']  
+                                )                                                                 
+                                                                                                  
+ branch_b_relu_1 (ReLU)         (None, 112, 112, 32  0           ['branch_b_batch_norm_1[0][0]']  
+                                )                                                                 
+                                                                                                  
+ branch_a_conv_2 (Conv2D)       (None, 112, 112, 64  18496       ['branch_a_relu_1[0][0]']        
+                                )                                                                 
+                                                                                                  
+ branch_a_projection (Conv2D)   (None, 112, 112, 64  2112        ['stem_relu[0][0]']              
+                                )                                                                 
+                                                                                                  
+ branch_b_conv_2 (Conv2D)       (None, 112, 112, 64  18496       ['branch_b_relu_1[0][0]']        
+                                )                                                                 
+                                                                                                  
+ branch_b_projection (Conv2D)   (None, 112, 112, 64  2112        ['stem_relu[0][0]']              
+                                )                                                                 
+                                                                                                  
+ branch_a_batch_norm_2 (BatchNo  (None, 112, 112, 64  256        ['branch_a_conv_2[0][0]']        
+ rmalization)                   )                                                                 
+                                                                                                  
+ branch_a_projection_batch_norm  (None, 112, 112, 64  256        ['branch_a_projection[0][0]']    
+  (BatchNormalization)          )                                                                 
+                                                                                                  
+ branch_b_batch_norm_2 (BatchNo  (None, 112, 112, 64  256        ['branch_b_conv_2[0][0]']        
+ rmalization)                   )                                                                 
+                                                                                                  
+ branch_b_projection_batch_norm  (None, 112, 112, 64  256        ['branch_b_projection[0][0]']    
+  (BatchNormalization)          )                                                                 
+                                                                                                  
+ branch_a_residual_add (Add)    (None, 112, 112, 64  0           ['branch_a_batch_norm_2[0][0]',  
+                                )                                 'branch_a_projection_batch_norm[
+                                                                 0][0]']                          
+                                                                                                  
+ branch_b_residual_add (Add)    (None, 112, 112, 64  0           ['branch_b_batch_norm_2[0][0]',  
+                                )                                 'branch_b_projection_batch_norm[
+                                                                 0][0]']                          
+                                                                                                  
+ branch_a_relu_out (ReLU)       (None, 112, 112, 64  0           ['branch_a_residual_add[0][0]']  
+                                )                                                                 
+                                                                                                  
+ branch_b_relu_out (ReLU)       (None, 112, 112, 64  0           ['branch_b_residual_add[0][0]']  
+                                )                                                                 
+                                                                                                  
+ branch_a_global_average_poolin  (None, 64)          0           ['branch_a_relu_out[0][0]']      
+ g (GlobalAveragePooling2D)                                                                       
+                                                                                                  
+ branch_b_global_average_poolin  (None, 64)          0           ['branch_b_relu_out[0][0]']      
+ g (GlobalAveragePooling2D)                                                                       
+                                                                                                  
+ feature_concatenation (Concate  (None, 128)         0           ['branch_a_global_average_pooling
+ nate)                                                           [0][0]',                         
+                                                                  'branch_b_global_average_pooling
+                                                                 [0][0]']                         
+                                                                                                  
+ fusion_dense (Dense)           (None, 256)          33024       ['feature_concatenation[0][0]']  
+                                                                                                  
+ fusion_batch_norm (BatchNormal  (None, 256)         1024        ['fusion_dense[0][0]']           
+ ization)                                                                                         
+                                                                                                  
+ fusion_relu (ReLU)             (None, 256)          0           ['fusion_batch_norm[0][0]']      
+                                                                                                  
+ fusion_dropout (Dropout)       (None, 256)          0           ['fusion_relu[0][0]']            
+                                                                                                  
+ classifier (Dense)             (None, 33)           8481        ['fusion_dropout[0][0]']         
+                                                                                                  
+==================================================================================================
+Total params: 120,929
+Trainable params: 119,713
+Non-trainable params: 1,216
+__________________________________________________________________________________________________

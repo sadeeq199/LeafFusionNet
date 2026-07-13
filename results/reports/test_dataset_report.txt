@@ -1,0 +1,212 @@
+====================================
+LeafFusionNet Test Dataset Report
+====================================
+
+Classes: 33
+Split Ratio: 15%
+
+------------------------------------
+Apple___Apple_scab
+Train Images : 2016
+Copied Images : 303
+Skipped Images : 0
+Test Images : 303
+------------------------------------
+Apple___Black_rot
+Train Images : 1987
+Copied Images : 299
+Skipped Images : 0
+Test Images : 299
+------------------------------------
+Apple___Cedar_apple_rust
+Train Images : 1760
+Copied Images : 264
+Skipped Images : 0
+Test Images : 264
+------------------------------------
+Apple___healthy
+Train Images : 2000
+Copied Images : 300
+Skipped Images : 0
+Test Images : 300
+------------------------------------
+Cherry_(including_sour)___healthy
+Train Images : 1826
+Copied Images : 274
+Skipped Images : 0
+Test Images : 274
+------------------------------------
+Cherry_(including_sour)___Powdery_mildew
+Train Images : 1683
+Copied Images : 253
+Skipped Images : 0
+Test Images : 253
+------------------------------------
+Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot
+Train Images : 1642
+Copied Images : 247
+Skipped Images : 0
+Test Images : 247
+------------------------------------
+Corn_(maize)___Common_rust_
+Train Images : 1907
+Copied Images : 287
+Skipped Images : 0
+Test Images : 287
+------------------------------------
+Corn_(maize)___healthy
+Train Images : 1859
+Copied Images : 279
+Skipped Images : 0
+Test Images : 279
+------------------------------------
+Corn_(maize)___Northern_Leaf_Blight
+Train Images : 1908
+Copied Images : 287
+Skipped Images : 0
+Test Images : 287
+------------------------------------
+Grape___Black_rot
+Train Images : 1888
+Copied Images : 284
+Skipped Images : 0
+Test Images : 284
+------------------------------------
+Grape___Esca_(Black_Measles)
+Train Images : 1920
+Copied Images : 288
+Skipped Images : 0
+Test Images : 288
+------------------------------------
+Grape___healthy
+Train Images : 1692
+Copied Images : 254
+Skipped Images : 0
+Test Images : 254
+------------------------------------
+Grape___Leaf_blight_(Isariopsis_Leaf_Spot)
+Train Images : 1722
+Copied Images : 259
+Skipped Images : 0
+Test Images : 259
+------------------------------------
+Peach___Bacterial_spot
+Train Images : 1838
+Copied Images : 276
+Skipped Images : 0
+Test Images : 276
+------------------------------------
+Peach___healthy
+Train Images : 1728
+Copied Images : 260
+Skipped Images : 0
+Test Images : 260
+------------------------------------
+Pepper,_bell___Bacterial_spot
+Train Images : 1913
+Copied Images : 287
+Skipped Images : 0
+Test Images : 287
+------------------------------------
+Pepper,_bell___healthy
+Train Images : 1988
+Copied Images : 299
+Skipped Images : 0
+Test Images : 299
+------------------------------------
+Potato___Early_blight
+Train Images : 1939
+Copied Images : 291
+Skipped Images : 0
+Test Images : 291
+------------------------------------
+Potato___healthy
+Train Images : 1824
+Copied Images : 274
+Skipped Images : 0
+Test Images : 274
+------------------------------------
+Potato___Late_blight
+Train Images : 1939
+Copied Images : 291
+Skipped Images : 0
+Test Images : 291
+------------------------------------
+Strawberry___healthy
+Train Images : 1824
+Copied Images : 274
+Skipped Images : 0
+Test Images : 274
+------------------------------------
+Strawberry___Leaf_scorch
+Train Images : 1774
+Copied Images : 267
+Skipped Images : 0
+Test Images : 267
+------------------------------------
+Tomato___Bacterial_spot
+Train Images : 1702
+Copied Images : 256
+Skipped Images : 0
+Test Images : 256
+------------------------------------
+Tomato___Early_blight
+Train Images : 1920
+Copied Images : 288
+Skipped Images : 0
+Test Images : 288
+------------------------------------
+Tomato___healthy
+Train Images : 1923
+Copied Images : 289
+Skipped Images : 0
+Test Images : 289
+------------------------------------
+Tomato___Late_blight
+Train Images : 1844
+Copied Images : 277
+Skipped Images : 0
+Test Images : 277
+------------------------------------
+Tomato___Leaf_Mold
+Train Images : 1882
+Copied Images : 283
+Skipped Images : 0
+Test Images : 283
+------------------------------------
+Tomato___Septoria_leaf_spot
+Train Images : 1745
+Copied Images : 262
+Skipped Images : 0
+Test Images : 262
+------------------------------------
+Tomato___Spider_mites Two-spotted_spider_mite
+Train Images : 1741
+Copied Images : 262
+Skipped Images : 0
+Test Images : 262
+------------------------------------
+Tomato___Target_Spot
+Train Images : 1827
+Copied Images : 275
+Skipped Images : 0
+Test Images : 275
+------------------------------------
+Tomato___Tomato_mosaic_virus
+Train Images : 1790
+Copied Images : 269
+Skipped Images : 0
+Test Images : 269
+------------------------------------
+Tomato___Tomato_Yellow_Leaf_Curl_Virus
+Train Images : 1961
+Copied Images : 295
+Skipped Images : 0
+Test Images : 295
+------------------------------------
+TOTAL TRAIN IMAGES : 60912
+TOTAL COPIED IMAGES : 9153
+TOTAL SKIPPED IMAGES : 0
+TOTAL TEST IMAGES : 9153
+Execution Time : 45.65 seconds
+====================================

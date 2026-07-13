@@ -1,0 +1,15 @@
+{
+  "project": "LeafFusionNet",
+  "architecture": "Dual-Branch CNN with Feature Fusion",
+  "dataset": "PlantVillage",
+  "framework": "TensorFlow",
+  "tensorflow": "2.10.0",
+  "keras": "2.10.0",
+  "python": "3.10.0",
+  "optimizer": "adam",
+  "loss": "sparse_categorical_crossentropy",
+  "learning_rate": 0.001,
+  "epochs": 50,
+  "batch_size": 32,
+  "seed": 42
+}
