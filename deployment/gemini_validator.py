@@ -117,7 +117,7 @@ def _parse_validation_response(response_text: str | None) -> tuple[bool, str]:
     clean_reason = reason.strip()
     if clean_reason:
         return False, clean_reason
-    return False, "The uploaded image is not suitable for plant disease diagnosis."
+    return False, "حط صورة ورقه نبات يا خول."
 
 
 def validate_leaf_image(image_bytes: bytes) -> tuple[bool, str]:
