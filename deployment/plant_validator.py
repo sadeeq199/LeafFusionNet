@@ -26,13 +26,13 @@ _PLANT_DETECTED_MESSAGE = "Plant detected"
 _INVALID_PLANT_MESSAGE = "Please upload a clear photo of a single plant leaf."
 _TOP_K = 5
 
-# Minimum EfficientNetB0 confidence required for a positive-keyword match to
-# be trusted. A keyword match alone is not sufficient evidence of plant
-# content, since Top-5 predictions can include low-confidence, essentially
-# noise-level classes. Raising this bar trades a small amount of recall
-# (real leaves occasionally scored low) for much higher precision, which is
-# the priority for this validator.
-_POSITIVE_CONFIDENCE_THRESHOLD = 0.60
+# Minimum cumulative confidence, summed across all Top-5 positive-keyword
+# matches, required to accept an image as a plant. Summing rather than
+# checking a single class lets corroborating evidence across multiple
+# Top-5 slots (e.g. "corn" and "maize" both appearing) count in the
+# image's favor, while still rejecting images whose only plant-like
+# signal is a single low-confidence class.
+_MIN_PLANT_SCORE = 0.20
 
 # Any Top-5 ImageNet prediction matching one of these words causes an
 # immediate rejection. These are common non-plant subjects (people, animals,
@@ -167,15 +167,15 @@ def validate_plant_image(image_bytes: bytes) -> tuple[bool, str]:
 
     - If any Top-5 class matches a negative keyword (person, car, phone,
       etc.), the image is immediately rejected.
-    - Otherwise, the image is accepted ONLY IF a Top-5 class matches a
-      positive (plant-related) keyword AND that class's confidence score
-      is at least _POSITIVE_CONFIDENCE_THRESHOLD.
-    - Otherwise (no positive keyword match, or the match's confidence is
-      below the threshold), the image is rejected. An unrecognized or
-      low-confidence ImageNet category is not treated as evidence of a
-      plant. This validator prioritizes precision: false positives
-      (letting a non-plant image through to LeafFusionNet) are considered
-      worse than false negatives (rejecting a real leaf).
+    - Otherwise, a ``plant_score`` is computed as the sum of the confidence
+      values of every Top-5 class that matches a positive (plant-related)
+      keyword. If ``plant_score >= _MIN_PLANT_SCORE``, the image is
+      accepted.
+    - Otherwise, the image is rejected. An unrecognized or weakly-supported
+      ImageNet category is not treated as evidence of a plant. This
+      validator prioritizes precision: false positives (letting a
+      non-plant image through to LeafFusionNet) are considered worse than
+      false negatives (rejecting a real leaf).
 
     Args:
         image_bytes: Raw uploaded image bytes.
@@ -216,15 +216,15 @@ def validate_plant_image(image_bytes: bytes) -> tuple[bool, str]:
         if _matches_any_keyword(normalized_name, _NEGATIVE_KEYWORDS):
             return False, _INVALID_PLANT_MESSAGE
 
-    for normalized_name, confidence in normalized_predictions:
-        if (
-            confidence >= _POSITIVE_CONFIDENCE_THRESHOLD
-            and _matches_any_keyword(normalized_name, _POSITIVE_KEYWORDS)
-        ):
-            return True, _PLANT_DETECTED_MESSAGE
+    plant_score = sum(
+        confidence
+        for normalized_name, confidence in normalized_predictions
+        if _matches_any_keyword(normalized_name, _POSITIVE_KEYWORDS)
+    )
 
-    # No negative match, and no positive match cleared the confidence bar:
-    # reject rather than let an uncertain or unrecognized image through.
+    if plant_score >= _MIN_PLANT_SCORE:
+        return True, _PLANT_DETECTED_MESSAGE
+
     return False, _INVALID_PLANT_MESSAGE
 
 
