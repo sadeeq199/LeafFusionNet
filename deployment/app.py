@@ -86,7 +86,7 @@ async def root() -> ServiceStatusResponse:
     return ServiceStatusResponse(project="LeafFusionNet", status="running")
 
 
-@app.get("/health", response_model=HealthResponse, tags=["Service"])
+@app.api_route("/health", methods=["GET", "HEAD"], response_model=HealthResponse, tags=["Service"])
 async def health() -> HealthResponse:
     """Report whether the model was loaded successfully during startup."""
     return HealthResponse(status="healthy" if is_model_loaded() else "unhealthy", model_loaded=is_model_loaded())
