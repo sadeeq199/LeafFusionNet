@@ -23,9 +23,16 @@ from tensorflow.keras.applications.efficientnet import (
 
 _EFFICIENTNET_IMAGE_SIZE = (224, 224)
 _PLANT_DETECTED_MESSAGE = "Plant detected"
-_UNKNOWN_CATEGORY_MESSAGE = "Unknown image category - allowing disease model to decide."
 _INVALID_PLANT_MESSAGE = "Please upload a clear photo of a single plant leaf."
 _TOP_K = 5
+
+# Minimum EfficientNetB0 confidence required for a positive-keyword match to
+# be trusted. A keyword match alone is not sufficient evidence of plant
+# content, since Top-5 predictions can include low-confidence, essentially
+# noise-level classes. Raising this bar trades a small amount of recall
+# (real leaves occasionally scored low) for much higher precision, which is
+# the priority for this validator.
+_POSITIVE_CONFIDENCE_THRESHOLD = 0.60
 
 # Any Top-5 ImageNet prediction matching one of these words causes an
 # immediate rejection. These are common non-plant subjects (people, animals,
@@ -75,18 +82,16 @@ _NEGATIVE_KEYWORDS = (
 )
 
 # Any Top-5 ImageNet prediction matching one of these words is treated as
-# strong evidence of plant content. This list is intentionally broad,
-# covering common crops, produce, and general plant/vegetation terms, since
-# EfficientNetB0 was never trained specifically on leaf-disease imagery and
-# will often land on a related-but-imperfect ImageNet class.
+# evidence of plant-leaf/crop content, but ONLY when paired with a
+# sufficiently high confidence score (see _POSITIVE_CONFIDENCE_THRESHOLD).
+# This list is intentionally narrow and focused on plant leaves and the
+# specific crops LeafFusionNet classifies. Broad or tangential categories
+# (generic trees, forests, wood, flowers, fungi, and non-leaf produce such
+# as apples or bananas) are deliberately excluded, since matching on them
+# says little about whether the image actually shows a leaf and hurts
+# precision.
 _POSITIVE_KEYWORDS = (
     "leaf",
-    "plant",
-    "tree",
-    "flower",
-    "grass",
-    "forest",
-    "wood",
     "vine",
     "corn",
     "maize",
@@ -106,33 +111,8 @@ _POSITIVE_KEYWORDS = (
     "spinach",
     "pumpkin",
     "cucumber",
-    "melon",
-    "watermelon",
-    "banana",
-    "apple",
-    "orange",
-    "grape",
-    "lemon",
-    "lime",
-    "fig",
-    "pineapple",
-    "strawberry",
-    "raspberry",
-    "blackberry",
-    "mushroom",
-    "fungus",
-    "daisy",
-    "sunflower",
-    "acorn",
-    "seed",
-    "nut",
-    "oak",
-    "maple",
-    "willow",
-    "palm",
-    "fern",
-    "bamboo",
     "artichoke",
+    "grape",
 )
 
 
@@ -187,13 +167,15 @@ def validate_plant_image(image_bytes: bytes) -> tuple[bool, str]:
 
     - If any Top-5 class matches a negative keyword (person, car, phone,
       etc.), the image is immediately rejected.
-    - Otherwise, if any Top-5 class matches a positive (plant-related)
-      keyword, the image is accepted as a detected plant.
-    - Otherwise, the image is still accepted, since an unrecognized
-      ImageNet category is not strong evidence of a non-plant image and
-      LeafFusionNet should be given the opportunity to classify it.
-      False negatives (rejecting a real leaf) are considered worse than
-      false positives (letting an odd image through to LeafFusionNet).
+    - Otherwise, the image is accepted ONLY IF a Top-5 class matches a
+      positive (plant-related) keyword AND that class's confidence score
+      is at least _POSITIVE_CONFIDENCE_THRESHOLD.
+    - Otherwise (no positive keyword match, or the match's confidence is
+      below the threshold), the image is rejected. An unrecognized or
+      low-confidence ImageNet category is not treated as evidence of a
+      plant. This validator prioritizes precision: false positives
+      (letting a non-plant image through to LeafFusionNet) are considered
+      worse than false negatives (rejecting a real leaf).
 
     Args:
         image_bytes: Raw uploaded image bytes.
@@ -225,19 +207,25 @@ def validate_plant_image(image_bytes: bytes) -> tuple[bool, str]:
     except Exception as exc:
         raise RuntimeError("EfficientNetB0 plant validation failed.") from exc
 
-    normalized_names = [
-        _normalize_class_name(class_name) for _, class_name, _ in decoded_predictions
+    normalized_predictions = [
+        (_normalize_class_name(class_name), float(confidence))
+        for _, class_name, confidence in decoded_predictions
     ]
 
-    for normalized_name in normalized_names:
+    for normalized_name, _confidence in normalized_predictions:
         if _matches_any_keyword(normalized_name, _NEGATIVE_KEYWORDS):
             return False, _INVALID_PLANT_MESSAGE
 
-    for normalized_name in normalized_names:
-        if _matches_any_keyword(normalized_name, _POSITIVE_KEYWORDS):
+    for normalized_name, confidence in normalized_predictions:
+        if (
+            confidence >= _POSITIVE_CONFIDENCE_THRESHOLD
+            and _matches_any_keyword(normalized_name, _POSITIVE_KEYWORDS)
+        ):
             return True, _PLANT_DETECTED_MESSAGE
 
-    return True, _UNKNOWN_CATEGORY_MESSAGE
+    # No negative match, and no positive match cleared the confidence bar:
+    # reject rather than let an uncertain or unrecognized image through.
+    return False, _INVALID_PLANT_MESSAGE
 
 
 __all__ = ["validate_plant_image"]
