@@ -204,6 +204,12 @@ def validate_plant_image(image_bytes: bytes) -> tuple[bool, str]:
     try:
         predictions = _PLANT_VALIDATOR_MODEL(batch, training=False).numpy()
         decoded_predictions = decode_predictions(predictions, top=_TOP_K)[0]
+
+        print("\n===== EfficientNet Top-5 =====")
+        for _, class_name, confidence in decoded_predictions:
+            print(f"{class_name}: {confidence:.4f}")
+        print("==============================\n")
+
     except Exception as exc:
         raise RuntimeError("EfficientNetB0 plant validation failed.") from exc
 
