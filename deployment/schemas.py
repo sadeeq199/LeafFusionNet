@@ -54,10 +54,16 @@ class PredictionItem(APIModel):
 
 
 class PredictionResponse(APIModel):
-    """Prediction result for one uploaded image."""
+    """Prediction result for one uploaded image, enriched with disease info."""
 
     prediction: str
     confidence: float = Field(ge=0.0, le=100.0)
+    display_name: str
+    crop: str
+    severity: str
+    description: str
+    treatment: list[str]
+    prevention: list[str]
     top5: list[PredictionItem]
     inference_time_ms: float = Field(ge=0.0)
 

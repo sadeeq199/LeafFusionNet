@@ -11,6 +11,7 @@ import tensorflow as tf
 from PIL import Image, UnidentifiedImageError
 
 from .config import IMAGE_SIZE, SUPPORTED_IMAGE_FORMATS
+from .disease_info import DISEASE_INFO
 from .model_loader import get_class_names, get_model
 from .plant_validator import validate_plant_image
 from .schemas import PredictionItem, PredictionResponse
@@ -92,9 +93,25 @@ def predict_image(data: bytes) -> PredictionResponse:
         for index in top_indices
     ]
     best = top5[0]
+    predicted_class = best.class_name
+
+    try:
+        disease = DISEASE_INFO[predicted_class]
+    except KeyError as exc:
+        raise RuntimeError(
+            f"No disease info entry found for predicted class '{predicted_class}'. "
+            "DISEASE_INFO is out of sync with the model's class labels."
+        ) from exc
+
     return PredictionResponse(
-        prediction=best.class_name,
+        prediction=predicted_class,
         confidence=best.confidence,
+        display_name=disease["display_name"],
+        crop=disease["crop"],
+        severity=disease["severity"],
+        description=disease["description"],
+        treatment=disease["treatment"],
+        prevention=disease["prevention"],
         top5=top5,
         inference_time_ms=inference_time_ms,
     )
