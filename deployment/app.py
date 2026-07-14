@@ -13,6 +13,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .config import CORS_ORIGINS, MAX_UPLOAD_BYTES, SUPPORTED_EXTENSIONS, VERCEL_ORIGIN_REGEX
 from .model_loader import get_class_names, get_metadata, is_model_loaded, load_artifacts
+from .plant_validator import is_obvious_non_plant
 from .predictor import InvalidImageError, predict_image
 from .schemas import (
     ClassesResponse,
@@ -28,6 +29,14 @@ logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+# Minimum LeafFusionNet top-1 confidence required to accept a prediction.
+# EfficientNet only screens out obvious non-plant uploads (see
+# plant_validator.is_obvious_non_plant); LeafFusionNet's own confidence is
+# the final authority on whether an image is a valid, recognizable leaf.
+LEAFFUSION_MIN_CONFIDENCE = 0.20
+
+_INVALID_PLANT_MESSAGE = "Please upload a clear photo of a single plant leaf."
 
 
 @asynccontextmanager
@@ -140,6 +149,12 @@ async def predict(file: UploadFile = File(...)) -> PredictionResponse:
             detail=f"The uploaded file exceeds the {MAX_UPLOAD_BYTES // (1024 * 1024)} MB limit.",
         )
 
+    is_plant_candidate, non_plant_message = is_obvious_non_plant(contents)
+    if not is_plant_candidate:
+        logger.info("EfficientNet: obvious non-plant -> rejected (file '%s')", filename)
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=non_plant_message)
+    logger.info("EfficientNet: passed (file '%s')", filename)
+
     try:
         result = predict_image(contents)
     except InvalidImageError as exc:
@@ -149,5 +164,10 @@ async def predict(file: UploadFile = File(...)) -> PredictionResponse:
         logger.exception("Prediction failed for file '%s'", filename)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Prediction could not be completed.") from exc
 
-    logger.info("Prediction completed for file '%s': %s", filename, result.prediction)
+    logger.info("LeafFusionNet confidence: %.4f (file '%s')", result.confidence, filename)
+    if result.confidence < LEAFFUSION_MIN_CONFIDENCE:
+        logger.info("LeafFusionNet confidence below threshold -> rejected (file '%s')", filename)
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=_INVALID_PLANT_MESSAGE)
+
+    logger.info("Prediction accepted for file '%s': %s", filename, result.prediction)
     return result
