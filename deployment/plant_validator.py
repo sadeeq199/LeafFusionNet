@@ -34,6 +34,15 @@ _TOP_K = 5
 # signal is a single low-confidence class.
 _MIN_PLANT_SCORE = 0.20
 
+# Minimum confidence required for a single Top-5 class whose normalized name
+# contains "leaf" (e.g. "leaf_beetle", "leafhopper", "leaf_miner") to trigger
+# an immediate accept on its own, ahead of the plant_score calculation. This
+# exists because ImageNet frequently predicts leaf-dwelling insect species
+# for real leaf photographs, and requiring several such classes to stack up
+# via plant_score is unnecessarily strict when a single one is already a
+# strong, specific signal.
+_LEAF_EARLY_ACCEPT_THRESHOLD = 0.10
+
 # Any Top-5 ImageNet prediction matching one of these words causes an
 # immediate rejection. These are common non-plant subjects (people, animals,
 # vehicles, electronics, household objects, buildings) that should never be
@@ -221,6 +230,10 @@ def validate_plant_image(image_bytes: bytes) -> tuple[bool, str]:
     for normalized_name, _confidence in normalized_predictions:
         if _matches_any_keyword(normalized_name, _NEGATIVE_KEYWORDS):
             return False, _INVALID_PLANT_MESSAGE
+
+    for normalized_name, confidence in normalized_predictions:
+        if "leaf" in normalized_name and confidence >= _LEAF_EARLY_ACCEPT_THRESHOLD:
+            return True, _PLANT_DETECTED_MESSAGE
 
     plant_score = 0.0
     for normalized_name, confidence in normalized_predictions:
