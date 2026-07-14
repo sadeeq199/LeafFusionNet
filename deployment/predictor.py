@@ -13,7 +13,6 @@ from PIL import Image, UnidentifiedImageError
 from .config import IMAGE_SIZE, SUPPORTED_IMAGE_FORMATS
 from .disease_info import DISEASE_INFO
 from .model_loader import get_class_names, get_model
-from .plant_validator import validate_plant_image
 from .schemas import PredictionItem, PredictionResponse
 
 _prediction_lock = threading.Lock()
@@ -75,9 +74,6 @@ def predict_image(data: bytes) -> PredictionResponse:
         Structured prediction response with percentage confidences.
     """
     _validate_image(data)
-    is_plant, message = validate_plant_image(data)
-    if not is_plant:
-        raise InvalidImageError(message)
 
     model_input = _preprocess_image(data)
     class_names = get_class_names()
