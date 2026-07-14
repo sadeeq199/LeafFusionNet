@@ -222,11 +222,12 @@ def validate_plant_image(image_bytes: bytes) -> tuple[bool, str]:
         if _matches_any_keyword(normalized_name, _NEGATIVE_KEYWORDS):
             return False, _INVALID_PLANT_MESSAGE
 
-    plant_score = sum(
-        confidence
-        for normalized_name, confidence in normalized_predictions
-        if _matches_any_keyword(normalized_name, _POSITIVE_KEYWORDS)
-    )
+    plant_score = 0.0
+    for normalized_name, confidence in normalized_predictions:
+        if "leaf" in normalized_name:
+            plant_score += confidence
+        elif _matches_any_keyword(normalized_name, _POSITIVE_KEYWORDS):
+            plant_score += confidence
 
     if plant_score >= _MIN_PLANT_SCORE:
         return True, _PLANT_DETECTED_MESSAGE
